@@ -104,11 +104,13 @@ sudo chgrp groupe2 /home/u4
 - **groupe1 pour u1 et u2**
 - **groupe2 pour u3 et u4**
 
+Pour changer le groupe primaire des utilisateurs u1 et u2 :
 ```bash
 sudo usermod -g groupe1 u1
 sudo usermod -g groupe1 u2
 ```
 
+Pour changer le groupe primaire des utilisateurs u3 et u4 :
 ```bash
 sudo usermod -g groupe2 u3
 sudo usermod -g groupe2 u4
@@ -116,7 +118,7 @@ sudo usermod -g groupe2 u4
 
 &nbsp;
 
-****
+**7. Créez deux répertoires /home/groupe1 et /home/groupe2 pour le contenu commun aux groupes, et mettez en place les permissions permettant aux membres de chaque groupe d’écrire dans le dossier associé.**
 
 &nbsp;
 
