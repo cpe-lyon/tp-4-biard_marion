@@ -353,10 +353,216 @@ root    ALL=(ALL:ALL) ALL
 #includedir /etc/sudoers.d
 ```
 
+> On a donc rajouter **timestamp_timeout=0**, ce qui permet que le mot de passe ne soit pas sauvegarder lorsque nous faisons un **sudo**
+
 &nbsp;
 
 ## Exercice 2. Gestion des permissions
 
+**1. Dans votre $HOME, créez un dossier test, et dans ce dossier un fichier fichier contenant quelques lignes de texte. Quels sont les droits sur test et fichier ?**
+
+```bash
+mkdir test
+echo 'Ceci est un fichier test' > test/fichier
+```
+
+Pour le dossier *test*, nous exécutons la commande : **ls -l**. En retour, nous avons : 
+```bash
+drwxrwxr-x 2 gauthieraudran gauthieraudran 4096 mars 18 18:55 test
+```
+
+> Nous avons donc 775 pour le dossier test.
+
+Pour le fichier *fichier* nous exécutons la commande : **ls -l fichier**. En retour, nous avons :
+```bash
+-rw-rw-r-- 1 gauthieraudran gauthieraudran 25 mars 18 18:55
+```
+
+> Nous avons donc 664 pour le fichier *fichier*.
+
+&nbsp;
+
+**2. Retirez tous les droits sur ce fichier (même pour vous), puis essayez de le modifier et de l’afficher en tant que root. Conclusion ?**
+
+Afin de retirer tous les droits sur ce fichier, nous exécutons la commande :
+```bash
+chmod 000 test/fichier
+```
+Si nous essayons de voir les droits sur ce fichier, nous obtenons en retour :
+```bash
+---------- 1 gauthieraudran gauthieraudran 25 mars 18 18:55
+```
+
+Nous nous connectons maintenant en tant que root. Ensuite, nous exécutons les commandes suivantes :
+```bash
+# echo 'Un autre test' > test/fichier
+# cat test/fichier
+Un autre test
+```
+
+> Nous remarquons que nous pouvons, en tant que root, écrire et lire le fichier. Nous pouvons également supprimer le fichier avec la commande **rm test/fichier** malgrès le fait que toutes les permissions soient retirées.
+
+&nbsp;
+
+**3. Redonnez vous les droits en écriture et exécution sur fichier puis exécutez la commande echo "echo Hello" > fichier. On a vu lors des TP précédents que cette commande remplace le contenu d’un fichier s’il existe déjà. Que peut-on dire au sujet des droits ?**
+
+Afin de redonner les droits, nous exécutons la commande suivante :
+```bash
+sudo chmod u+wx test/fichier
+```
+Si nous regardons les informations sur *fichier* à l'aide de la commande **ls -l test**, nous obtenons en retour :
+```bash
+--wx------ 1 gauthieraudran gauthieraudran 0 mars 18 18:55
+```
+
+Nous exécutons maintenant la commande demandée :
+```bash
+echo "echo Hello" > test/fichier
+```
+Si nous exécutons la commande **ls -l test**, nous obtenons maintenant en retour :
+```bash
+--wx------ 1 gauthieraudran gauthieraudran 11 mars 18 18:55
+```
+
+> Les droits d'écriture sont suffisant car nous sommes propiétaire du fichier.
+
+&nbsp;
+
+**4. Essayez d’exécuter le fichier. Est-ce que cela fonctionne ? Et avec sudo ? Expliquez.**
+
+Nous essayons d'éxecuter le fichier :
+```bash
+gauthieraudran@serveur:~$ cd test/
+gauthieraudran@serveur:~/test$ ./fichier
+```
+En retour, nous obtenons :
+```bash
+bash: ./fichier: Permission denied
+```
+> Nous ne pouvons pas exécuter le fichier. Nous avons bien le droit d'éxecution sur le fichier mais nous n'avons pas le droit de lecture, c'est pourquoi nous ne pouvons pas exécuter le fichier.
+
+Nous essayons maintenant avec le **sudo** :
+```bash
+gauthieraudran@serveur:~/test$ sudo ./fichier
+Hello
+```
+> Lorsque nous exécutons avec **sudo**, nous passons au-dessus des permissions donc nous pouvons exécuter le fichier.
+
+Afin de pouvoir exécuter le fichier sans utiliser **sudo**, nous devons tout d'abord exécuter la commande suivante :
+```bash
+sudo chmod u+r fichier
+```
+Maintenant nous pouvons exécuter le fichier sans avoir besoin d'utiliser **sudo**.
+
+&nbsp;
+
+**5. Placez-vous dans le répertoire test, et retirez-vous le droit en lecture pour ce répertoire. Listez le contenu du répertoire, puis exécutez ou affichez le contenu du fichier fichier. Qu’en déduisez-vous ? Rétablissez le droit en lecture sur test**
+
+
+Tout d'abord, nous enlevons les droits de lecture sur le répertoire test :
+```bash
+chmod u-r test
+```
+Nous essayons ensuite de lire le contenu du répertoire :
+```bash
+gauthieraudran@serveur:~$ ls test
+ls: cannot open directory 'test': Permission denied
+```
+> Nous ne pouvons pas afficher le contenu du dossier *test* car nous n'avons pas les droits de lecture.
+
+Nous essayons maintenant d'afficher et d'exécuter le fichier fichier :
+```bash
+gauthieraudran@serveur:~$ cat test/fichier
+echo Hello
+gauthieraudran@serveur:~$ ./test/fichier
+Hello
+```
+> Nous pouvons donc lire et exécuter le fichier *fichier* car nous n'avons pas changer les permissions sur le fichier. Cependant, nous ne pouvons pas utiliser l'auto-complétion sur le fichier lorsque nous tapons la commande.
+
+Nous rétablissons le droit de lecture sur *test* :
+```bash
+chmod u+r test
+```
+
+&nbsp;
+
+**6. Créez dans test un fichier nouveau ainsi qu’un répertoire sstest. Retirez au fichier nouveau et au répertoire test le droit en écriture. Tentez de modifier le fichier nouveau. Rétablissez ensuite le droit en écriture au répertoire test. Tentez de modifier le fichier nouveau, puis de le supprimer. Que pouvez-vous déduire de toutes ces manipulations ?**
+
+Tout d'abord, nous créons le fichier *nouveau* et le répertoire *sstest* :
+```bash
+gauthieraudran@serveur:~$ cd test
+gauthieraudran@serveur:~/test$ echo 'nouveau' > nouveau
+gauthieraudran@serveur:~/test$ mkdir sstest
+```
+
+Ensuite, nous retirons le droit d'écriture au fichier *nouveau* et au répertoire *test* :
+```bash
+gauthieraudran@serveur:~/test$ sudo chmod u-w nouveau
+gauthieraudran@serveur:~/test$ cd ..
+gauthieraudran@serveur:~$ sudo chmod u-w test
+gauthieraudran@serveur:~$ echo "Ceci est un test d'écriture" > test/nouveau
+- bash: test/nouveau: Permission denied 
+gauthieraudran@serveur:~$ rm test/nouveau
+rm: remove write-protected regular file 'test/nouveau'? yes
+gauthieraudran@serveur:~$ ls test
+fichier nouveau sstest
+```
+
+> En retirant les droits d'écriture au dossier et au fichier, nous en pouvons pas écrire ou supprimer le fichier.
+
+Nous rajoutons le droit d'écriture sur le répertoire :
+```bash
+gauthieraudran@serveur:~$ chmod u+w test
+gauthieraudran@serveur:~$ echo 'coucou' > test/nouveau
+-bash: test/nouveau: Permission denied
+$ rm test/nouveau
+rm: remove write-protected regular file 'test/nouveau'? yes
+$ ls test
+fichier  sstest
+```
+> Lorsque nous remettons les droit d'écriture seulement sur le dossier, nous ne pouvons toujours pas écrire sur le fichier mais nous pourvons tout de même supprimer le fichier (en effet, en faisant cela, nous n'écrivons pas sur le fichier mais sur le répertoire).
+
+&nbsp;
+
+**7. Positionnez vous dans votre répertoire personnel, puis retirez le droit en exécution du répertoire test. Tentez de créer, supprimer, ou modifier un fichier dans le répertoire test, de vous y déplacer, d’en lister le contenu, etc…Qu’en déduisez vous quant au sens du droit en exécution pour les répertoires ?**
+
+```bash
+gauthieraudran@serveur:~$ chmod u-x test
+gauthieraudran@serveur:~$ echo 'test' > test/fichier
+bash: test/fichier: Permission denied
+gauthieraudran@serveur:~$ touch test/test
+touch: cannot touch 'test/test': Permission denied
+gauthieraudran@serveur:~$ rm test/fichier
+rm: cannot remove 'test/fichier': Permission denied
+gauthieraudran@serveur:~$ ./test/fichier
+bash: ./test/fichier: Permission denied
+```
+> En supprimant les droits d'éxécution, nous ne pouvons plus créer, ni supprimer, ni modifier et ni exécuter un fichier.
+
+```bash
+gauthieraudran@serveur:~$ ls -l test
+ls: cannot access 'test/fichier': Permission denied
+ls: cannot access 'test/sstest': Permission denied
+total 0
+-????????? ? ? ? ?            ? fichier
+d????????? ? ? ? ?            ? sstest
+```
+> Nous pouvons donc toujours lister le contenu du dossier mais nous ne pouvons pas accéder aux éléments. Tout ce que nous pouvons savoir est donc leut nom.
+
+&nbsp;
+
+**8. Rétablissez le droit en exécution du répertoire test. Positionnez vous dans ce répertoire et retirez lui à nouveau le droit d’exécution. Essayez de créer, supprimer et modifier un fichier dans le répertoire test, de vous déplacer dans ssrep, de lister son contenu. Qu’en concluez-vous quant à l’influence des droits que l’on possède sur le répertoire courant ? Peut-on retourner dans le répertoire parent avec ”cd ..” ? Pouvez-vous donner une explication ?**
+
+&nbsp;
+
+****
+
+&nbsp;
+
+****
+
+&nbsp;
+
 ****
 
 &nbsp;
@@ -368,3 +574,17 @@ root    ALL=(ALL:ALL) ALL
 ****
 
 &nbsp;
+
+****
+
+&nbsp;
+
+****
+
+&nbsp;
+
+****
+
+&nbsp;
+
+****
