@@ -553,9 +553,32 @@ d????????? ? ? ? ?            ? sstest
 
 **8. Rétablissez le droit en exécution du répertoire test. Positionnez vous dans ce répertoire et retirez lui à nouveau le droit d’exécution. Essayez de créer, supprimer et modifier un fichier dans le répertoire test, de vous déplacer dans ssrep, de lister son contenu. Qu’en concluez-vous quant à l’influence des droits que l’on possède sur le répertoire courant ? Peut-on retourner dans le répertoire parent avec ”cd ..” ? Pouvez-vous donner une explication ?**
 
+```bash
+gauthieraudran@serveur:~$ chmod u+x test
+gauthieraudran@serveur:~$ cd test
+gauthieraudran@serveur:~/test$ chmod u-x ../test
+gauthieraudran@serveur:~/test$ touch coucou
+touch: cannot touch 'a': Permission denied
+gauthieraudran@serveur:~/test$ ls
+ls: cannot open directory '.': Permission denied
+gauthieraudran@serveur:~/test$ rm fichier
+rm: cannot remove 'fichier': Permission denied
+gauthieraudran@serveur:~/test$ echo 'test' > fichier
+bash: fichier: Permission denied
+gauthieraudran@serveur:~/test$ cd ssrep
+bash: cd: ssrep: Permission denied
+gauthieraudran@serveur:~/test$ ls ssrep
+ls: cannot access 'ssrep': Permission denied
+gauthieraudran@serveur:~/test$ cd ..
+gauthieraudran@serveur:~$
+```
+> Nous pouvons donc en conclure que nos permissions dépendent du dossier dans lequel nous nous trouvons. C'est pourquoi nous ne pouvons pas exécuter de commande dans le dossier dans lequel nous nous trouvons.
+
+> La commande **cd..** fonctionne car nous avons les droits dans le dossier parent. Nous n'avions pas les droits dans le dossier *test* afin d'aller dans le dossier *ssrep*.
+
 &nbsp;
 
-****
+**9. Rétablissez le droit en exécution du répertoire test. Attribuez au fichier fichier les droits suffisants pour qu’une autre personne de votre groupe puisse y accéder en lecture, mais pas en écriture.**
 
 &nbsp;
 
