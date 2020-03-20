@@ -580,34 +580,56 @@ gauthieraudran@serveur:~$
 
 **9. Rétablissez le droit en exécution du répertoire test. Attribuez au fichier fichier les droits suffisants pour qu’une autre personne de votre groupe puisse y accéder en lecture, mais pas en écriture.**
 
-&nbsp;
-
-****
-
-&nbsp;
-
-****
-
-&nbsp;
-
-****
-
-&nbsp;
-
-****
+Afin de rétablir le droit d'exécution du répertoire test : 
+```bash
+chmod u+x test
+```
+Afin d'ajouter le droit de lecture à quelqu'un du même groupe :
+```bash
+chmod g+r test/fichier
+```
+Afin d'enlever le droit d'écriture à quelqu'un du même groupe :
+```bash
+chmod g-w test/fichier
+```
 
 &nbsp;
 
-****
+**10. Définissez un umask très restrictif qui interdit à quiconque à part vous l’accès en lecture ou en écriture, ainsi que la traversée de vos répertoires. Testez sur un nouveau fichier et un nouveau répertoire.**
+
+Nous créons le umask puis nous le vérifions :
+```bash
+gauthieraudran@serveur:~$ umask 077
+gauthieraudran@serveur:~$ umask -S
+```
 
 &nbsp;
 
-****
+**11. Définissez un umask très permissif qui autorise tout le monde à lire vos fichiers et traverser vos répertoires, mais n’autorise que vous à écrire. Testez sur un nouveau fichier et un nouveau répertoire.**
 
 &nbsp;
 
-****
+**12. Définissez un umask équilibré qui vous autorise un accès complet et autorise un accès en lecture aux membres de votre groupe. Testez sur un nouveau fichier et un nouveau répertoire.**
 
 &nbsp;
 
-****
+**13. Transcrivez les commandes suivantes de la notation classique à la notation octale ou vice-versa (vous
+pourrez vous aider de la commande stat pour valider vos réponses) :**
+- **chmod u=rx,g=wx,o=r fic**
+- **chmod uo+w,g-rx fic en sachant que les droits initiaux de fic sont r--r-x---**
+- **chmod 653 fic en sachant que les droits initiaux de fic sont 711**
+- **chmod u+x,g=w,o-r fic en sachant que les droits initiaux de fic sont r--r-x---**
+
+&nbsp;
+
+**14. Affichez les droits sur le programme passwd. Que remarquez-vous ? En affichant les droits du fichier /etc/passwd, pouvez-vous justifier les permissions sur le programme passwd ?**
+
+&nbsp;
+
+**Pour les plus rapides :**
+
+**15. Access Control Lists (ACL) : suivez le tutoriel de cette page : https://doc.ubuntu-fr.org/acl.**
+
+&nbsp;
+
+**16. Quotas disques : suivez le tutoriel de cette page : https://doc.ubuntu-fr.org/quota.**
