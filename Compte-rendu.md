@@ -601,15 +601,106 @@ Nous créons le umask puis nous le vérifions :
 ```bash
 gauthieraudran@serveur:~$ umask 077
 gauthieraudran@serveur:~$ umask -S
+u=rwx,g=,o=
 ```
+
+Nous testons maintenant de créer un nouveau fichier et un nouveau répertoire et d'y accéder :
+```bash
+gauthieraudran@serveur:~$ mkdir coucou
+gauthieraudran@serveur:~$ echo "C'est un test" > coucou/nvfichier
+gauthieraudran@serveur:~$ cd coucou
+gauthieraudran@serveur:~/coucou$ ls
+nvfichier
+gauthieraudran@serveur:~/coucou$ cat nvfichier
+C'est un test
+```
+> Tout fonctionne correctement. Maintenant testons avec un autre utilisateur :
+```bash
+gauthieraudran@serveur:~$ su u1
+Password: 
+$ cd /home
+$ cd /gauthieraudran
+sh: 2: cd: can't cd to /gauthieraudran
+```
+> Nous ne pouvons donc même pas accéder à notre dossier d'utilisateur car seul nous avons les droits.
 
 &nbsp;
 
 **11. Définissez un umask très permissif qui autorise tout le monde à lire vos fichiers et traverser vos répertoires, mais n’autorise que vous à écrire. Testez sur un nouveau fichier et un nouveau répertoire.**
 
+On définit le umask :
+```bash
+gauthieraudran@serveur:~$ umask 022
+gauthieraudran@serveur:~$ umask -S
+u=rwx,g=rx,o=rx
+gauthieraudran@serveur:~$ mkdir coucou2
+gauthieraudran@serveur:~$ echo "Ceci est un test" > coucou2/test
+```
+Nous essayons avec un utilisateur :
+```bash
+gauthieraudran@serveur:~$ su u1
+Password: 
+$ cd /home
+$ cd /gauthieraudran
+$ ls
+coucou	 installed-package   nudoku	       origine-commande2     repo-cpe
+coucou2  installed-package2  origine-commande  origine-commande.deb  test
+$ cd coucou2
+$ ls
+test
+$ cat test
+Ceci est un test
+$ mkdir test2
+mkdir: cannot create directory ‘test2’: Permission denied
+$ touch test2
+touch: cannot touch 'test2': Permission denied
+```
+> Nous pouvons donc bien naviguer dans les dossiers mais nous ne pouvons ni créer de dossier ni créer de fichier.
 &nbsp;
 
 **12. Définissez un umask équilibré qui vous autorise un accès complet et autorise un accès en lecture aux membres de votre groupe. Testez sur un nouveau fichier et un nouveau répertoire.**
+
+Nous créons le umask, le vérifions et créons des dossiers de test :
+```bash
+gauthieraudran@serveur:~$ umask 037
+gauthieraudran@serveur:~$ umask -S
+u=rwx,g=r,o=
+gauthieraudran@serveur:~$ mkdir coucou12
+gauthieraudran@serveur:~$ echo "Ceci est un test" > coucou12/test 
+```
+
+Nous testons avec un utilisateur :
+```bash
+gauthieraudran@serveur:~$ su u1
+Password: 
+$ cd /home/gauthieraudran
+$ ls
+coucou	  installed-package   origine-commande	    repo-cpe
+coucou12  installed-package2  origine-commande2     test
+coucou2   nudoku	      origine-commande.deb
+$ cd coucou12
+sh: 3: cd: can't cd to coucou12
+```
+> Cela est dû au fait que l'utilisateur n'appartienne pas à notre groupe. Ajoutons-le avec la commande : **sudo usermod -a -G gauthieraudran u1**
+```bash
+$ su u1
+Password:
+$ cd /home/gauthieraudran
+$ ls
+coucou	  installed-package   origine-commande	    repo-cpe
+coucou12  installed-package2  origine-commande2     test
+coucou2   nudoku	      origine-commande.deb
+$ cd coucou12
+$ ls
+test
+$ cat test
+Ceci est un test
+$ mkdir test2
+mkdir: cannot create directory ‘test2’: Permission denied
+$ touch test2
+touch: cannot touch 'test2': Permission denied
+```
+> En appartenant au groupe *gauthieraudran*, cet utilisateur à le droit de le déplacer dans l'arborescence mais ne peut toujours pas créer de fichier ou de dossier.
 
 &nbsp;
 
@@ -620,9 +711,24 @@ pourrez vous aider de la commande stat pour valider vos réponses) :**
 - **chmod 653 fic en sachant que les droits initiaux de fic sont 711**
 - **chmod u+x,g=w,o-r fic en sachant que les droits initiaux de fic sont r--r-x---**
 
+|          Commande            |                                     Transcription                                                          |
+|------------------------------|-------------------------------------------------------------------------------------------------------|
+| chmod u=rx,g=wx,o=r fic        | chmod 534 fic                                                |
+| chmod uo+w,g-rx fic en sachant que les droits initiaux de fic sont r--r-x---               | chmod 604 fic                                                  |
+| chmod 653 fic en sachant que les droits initiaux de fic sont 711                | chmod u-x,g-r,o-w fic                                          |
+| chmod u+x,g=w,o-r fic en sachant que les droits initiaux de fic sont r--r-x---               | chmod 520 fic           |
+
+
 &nbsp;
 
 **14. Affichez les droits sur le programme passwd. Que remarquez-vous ? En affichant les droits du fichier /etc/passwd, pouvez-vous justifier les permissions sur le programme passwd ?**
+
+```bash
+gauthieraudran@serveur:~$ stat -c %A /etc/passwd
+-rw-r--r--
+```
+
+> Les permissions de ce dossier correspondent à celles qu'ont un dossier par défaut. Le propriétaire de ce dossier est root. Les utilisateurs *group* et *other* ont seulement le droit en lecture, donc ils ne peuvent que lister les utilisateur et connaître leur groupe etc. Cependant, ils n'ont pas le droit en écriture et ne peuvent donc pas l'éditer (ce que nous avons remarquer précédement car il faut être root afin de pouvoir créer un utilisateur).
 
 &nbsp;
 
@@ -633,3 +739,4 @@ pourrez vous aider de la commande stat pour valider vos réponses) :**
 &nbsp;
 
 **16. Quotas disques : suivez le tutoriel de cette page : https://doc.ubuntu-fr.org/quota.**
+
